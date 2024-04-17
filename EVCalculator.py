@@ -1,3 +1,4 @@
+'''
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from tqdm import tqdm
@@ -55,8 +56,8 @@ class EVCalculator:
         edge_options = Options()
         edge_options.add_argument('--headless')
         # headless mode to hide the browser
-        # self.driver = webdriver.Edge(options=edge_options)
-        self.driver = webdriver.Edge()
+        self.driver = webdriver.Edge(options=edge_options)
+        #self.driver = webdriver.Edge()
         self.driver.get(self.url)
         self.leg_odds_wrapper = ElementWrapper(self.driver, By.NAME, 'TextBoxLegOdds')
         self.final_odds_wrapper = ElementWrapper(self.driver, By.NAME, 'TextBoxFinalOdds')
@@ -104,32 +105,76 @@ EVCalculator = EVCalculator(url, legOdds, final_odds, len(legOdds))
 EVCalculator.calculate()
 print(EVCalculator.result)
 
-# The below code is another approach based on the google sheet formula. However it is significantly slower
 '''
-from selenium import webdriver
-from selenium.webdriver.common.by import By
+'''
+This file will proceed in the following steps:
+1. converting both over and under to American odds
+2. calculating both over and under 's implied probabilities
+3. calculating the total probabilities by adding over and under ' s implied probabilities
+4. return 
+'''
+import random
 from tqdm import tqdm
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.edge.options import Options
-from selenium.common.exceptions import StaleElementReferenceException
 
-legOdds = ['-110/-110', '-110/-111', '-110/-112', '-110/-113', '-110/-114', '-110/-115', '-110/-116', '-110/-117', '-110/-118', '-110/-119', '-110/-120', '-110/-121', '-110/-122', '-110/-123', '-110/-124', '-110/-125', '-110/-126', '-110/-127', '-110/-128', '-110/-129', '-110/-130', '-110/-131', '-110/-132', '-110/-133', '-110/-134', '-110/-135', '-110/-136', '-110/-137', '-110/-138', '-110/-139', '-110/-140', '-110/-141', '-110/-142', '-110/-143', '-110/-144', '-110/-145', '-110/-146', '-110/-147', '-110/-148', '-110/-149', '-110/-150', '-110/-151', '-110/-152', '-110/-153', '-110/-154', '-110/-155', '-110/-156', '-110/-157', '-110/-158', '-110/-159', '-110/-160', '-110/-161', '-110/-162', '-110/-163', '-110/-164', '-110/-165', '-110/-166', '-110/-167', '-110/-168', '-110/-169', '-110/-170', '-110/-171', '-110/-172', '-110/-173', '-110/-174', '-110/-175', '-110/-176', '-110/-177', '-110/-178', '-110/-179', '-110/-180', '-110/-181', '-110/-182', '-110/-183', '-110/-184', '-110/-185', '-110/-186', '-110/-187', '-110/-188', '-110/-189', '-110/-190', '-110/-191', '-110/-192', '-110/-193', '-110/-194', '-110/-195', '-110/-196', '-110/-197', '-110/-198', '-110/-199', '-110/-200', '-110/-201', '-110/-202', '-110/-203', '-110/-204', '-110/-205', '-110/-206', '-110/-207', '-110/-208', '-110/-209']
-finalOdds = '+264'
+pbar = tqdm(total = 20000)
 
-pbar = tqdm()
-for i in range(100):
-    url = 'https://api.crazyninjaodds.com/api/devigger/v1/sportsbook_devigger.aspx?api=open&Args=ev_p,fb_p,fo_o,' \
-          'kelly&DevigMethod=2&LegOdds=' + legOdds[i] + '&FinalOdds=' + finalOdds
-    # Instantiate Edge WebDriver
-    edge_options = Options()
-    edge_options.add_argument('--headless')
-    # headless mode to hide the browser
-    driver = webdriver.Edge(options=edge_options)
-    # driver = webdriver.Edge()
-    driver.get(url)
-    otpt = driver.find_elements(By.CLASS_NAME, 'token-number')
-    print(otpt[1].text)
+def convert_to_american_odds(input_odds):
+    '''
+    This function is for converting our odds to American odds
+    :param input_odds:
+    :return:
+    '''
+    numerator = 100
+    denominator = 100
+    if input_odds > 0:
+        numerator = input_odds
+    else:
+        denominator = input_odds * -1
+    return  1 + (numerator/denominator)
+
+
+def implied_probabilities(american_odds):
+    '''
+    This function is to calculating implied probabilities
+    :param american_odds:
+    :return:
+    '''
+    return 1/american_odds
+
+
+def total_implied_probabilities(over_american_odds, under_american_odds):
+    '''
+    This function is for calculating implied probabilities
+    :param over_american_odds:
+    :param under_american_odds:
+    :return:
+    '''
+    return over_american_odds + under_american_odds
+
+def main(over, under):
+    '''
+    This function contains our main loop for the function
+    :param over:
+    :param under:
+    :return:
+    '''
+    over_decimal = convert_to_american_odds(over)
+    under_decimal = convert_to_american_odds(under)
+    over_implied = implied_probabilities(over_decimal)
+    under_implied = implied_probabilities(under_decimal)
+    total_implied = total_implied_probabilities(over_implied, under_implied)
+    return (over_implied/total_implied)
+    # print(under_implied/total_implied)
+
+#  This is a test case for the algorithm
+for i in range(20000):
+    print('=====================================')
+    numerator = random.randint(-500, 500)
+    denominator = random.randint(-500, 500)
+    if denominator == 0 or numerator == 0:
+        continue
+    print(numerator)
+    print(denominator)
+    print(main(numerator, denominator))
     pbar.update(1)
 
-pbar.close()
-'''
