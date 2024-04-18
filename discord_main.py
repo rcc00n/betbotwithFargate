@@ -1,8 +1,19 @@
 import discord
+import logging
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
+global white_list
+white_list = [805132684237340755] # Vadim's discord ID
 
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s:%(levelname)s:%(name)s: %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    filename='discord_bot.log',  
+                    filemode='a')  
+
+logger = logging.getLogger('discord')
 
 class ForecastView(discord.ui.View):
     def __init__(self, data):
@@ -10,31 +21,30 @@ class ForecastView(discord.ui.View):
         self.data = data
 
     async def send_forecast(self, interaction, league_id):
-        # Prepare the embed message
         embed = discord.Embed(title=f"{league_id} Forecast",
                               description="Here are the forecast details for the selected league:",
-                              color=0x3498db)  # Blue color hex code
+                              color=0x3498db)  
         
-        # Assuming data contains relevant data per league, adapt as necessary
+        
         for player, details in self.data.items():
             response = self.process_player_info({player: details})
             embed.add_field(name=player, value=response, inline=False)
         
         await interaction.response.send_message(embed=embed, ephemeral=False)
-
+        logger.info(f'Sent forecast for {league_id}')
+         
     def process_player_info(self, player_data):
         player_name = list(player_data.keys())[0]
         goals = player_data[player_name]['goal'][0]
         odds = player_data[player_name]['odd'][0]
-        # Simplifying these methods or assuming they return string directly
         return (
-            f"Player name: {player_name}\n"
-            f"Goal: {goals}\n"
-            f"Odds: {odds}\n"
-            f"EV: {get_EV()}\n"
-            f"FV: {get_FV()}\n"
-            f"MJ: {get_MJ()}\n"
-            f"Website name: {get_website_name()}\n"
+            f"Player name: **{player_name}**\n"
+            f"Goal: **{goals}**\n"  
+            f"Odds: **{odds}**\n"  
+            f"EV: **{get_EV()}**\n"  
+            f"FV: **{get_FV()}**\n"  
+            f"MJ: **{get_MJ()}**\n"  
+            f"Website name: **{get_website_name()}**\n"
         )
 
     @discord.ui.button(label="League 1", style=discord.ButtonStyle.secondary, custom_id="get_forecast1")
@@ -81,10 +91,17 @@ def get_player_data():
 @client.event
 async def on_ready():
     print(f'Logged in as {client.user}')
-
+    logger.info(f'Bot logged in as {client.user}')
+    
 @client.event
 async def on_message(message):
     if message.author == client.user:
+        return
+    
+    logger.info(f'Message from {message.author} (ID: {message.author.id}): {message.content}')
+
+    if message.author.id not in white_list:
+        await message.channel.send("You are not allowed to use the bot, get a subscription")
         return
 
     if message.content.strip().lower() == "!forecast":
