@@ -53,7 +53,7 @@ betway_headers = {
 }
 
 betway_json_data = {
-    'EventId': 13457951,
+    'EventId': 13502524,
     'LanguageId': 1,
     'ClientTypeId': 2,
     'BrandId': 3,
@@ -78,20 +78,20 @@ betway_json_data = {
 
 
 pointsbet_headers = {
-    'accept': 'application/json, text/plain, */*',
+     'accept': 'application/json, text/plain, */*',
     'accept-language': 'en-US,en;q=0.9,uk-UA;q=0.8,uk;q=0.7',
-    'if-modified-since': 'Sun, 14 Apr 2024 07:53:53 GMT',
+    'if-modified-since': 'Thu, 18 Apr 2024 01:18:01 GMT',
     'origin': 'https://on.pointsbet.ca',
     'referer': 'https://on.pointsbet.ca/',
-    'request-id': '|770bdf4f84d243dda220203db3836170.cdb05985d535467a',
+    'request-id': '|2ff3da07b70a4ee29e38a64c42cab8c7.dd258f38bb2d43f0',
     'sec-ch-ua': '"Google Chrome";v="123", "Not:A-Brand";v="8", "Chromium";v="123"',
     'sec-ch-ua-mobile': '?0',
     'sec-ch-ua-platform': '"Windows"',
     'sec-fetch-dest': 'empty',
     'sec-fetch-mode': 'cors',
     'sec-fetch-site': 'cross-site',
-    'traceparent': '00-770bdf4f84d243dda220203db3836170-cdb05985d535467a-01',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+    'traceparent': '00-2ff3da07b70a4ee29e38a64c42cab8c7-dd258f38bb2d43f0-01',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36'
 }
 
 
