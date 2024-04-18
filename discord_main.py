@@ -1,10 +1,11 @@
 import discord
 import logging
+import datetime
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 global white_list
-white_list = [805132684237340755] # Vadim's discord ID
+white_list = [805132684237340755, 247841957789827073] # Vadim's and Kenny's discord ID 
 
 
 logging.basicConfig(level=logging.INFO,
@@ -21,10 +22,14 @@ class ForecastView(discord.ui.View):
         self.data = data
 
     async def send_forecast(self, interaction, league_id):
-        embed = discord.Embed(title=f"{league_id} Forecast",
-                              description="Here are the forecast details for the selected league:",
-                              color=0x3498db)  
-        
+        embed = discord.Embed(
+        description="Football Match Forecasts",
+        color=0x1F8B4C)  
+        embed.set_thumbnail(url="http://example.com/your_logo.png")  
+        embed.set_author(name="BetBot", icon_url="http://example.com/bot_icon.png")  
+        embed.set_footer(text="Data provided by BetBot", icon_url="http://example.com/footer_icon.png")
+        embed.timestamp = datetime.datetime.utcnow() 
+                
         
         for player, details in self.data.items():
             response = self.process_player_info({player: details})
@@ -47,29 +52,29 @@ class ForecastView(discord.ui.View):
             f"Website name: **{get_website_name()}**\n"
         )
 
-    @discord.ui.button(label="League 1", style=discord.ButtonStyle.secondary, custom_id="get_forecast1")
+    @discord.ui.button(label="EPL", style=discord.ButtonStyle.secondary, custom_id="get_forecast1")
     async def forecast_button1(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.send_forecast(interaction, "League 1")
+        await self.send_forecast(interaction, "EPL")
 
-    @discord.ui.button(label="League 2", style=discord.ButtonStyle.secondary, custom_id="get_forecast2")
+    @discord.ui.button(label="Bundesliga", style=discord.ButtonStyle.secondary, custom_id="get_forecast2")
     async def forecast_button2(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.send_forecast(interaction, "League 2")
+        await self.send_forecast(interaction, "Bundesliga")
 
-    @discord.ui.button(label="League 3", style=discord.ButtonStyle.secondary, custom_id="get_forecast3")
+    @discord.ui.button(label="Italian Serie A", style=discord.ButtonStyle.secondary, custom_id="get_forecast3")
     async def forecast_button3(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.send_forecast(interaction, "League 3")
+        await self.send_forecast(interaction, "Italian Serie A")
 
-    @discord.ui.button(label="League 4", style=discord.ButtonStyle.secondary, custom_id="get_forecast4")
+    @discord.ui.button(label="La Liga", style=discord.ButtonStyle.secondary, custom_id="get_forecast4")
     async def forecast_button4(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.send_forecast(interaction, "League 4")
+        await self.send_forecast(interaction, "La Liga")
 
-    @discord.ui.button(label="League 5", style=discord.ButtonStyle.secondary, custom_id="get_forecast5")
+    @discord.ui.button(label="French Ligue 1", style=discord.ButtonStyle.secondary, custom_id="get_forecast5")
     async def forecast_button5(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.send_forecast(interaction, "League 5")
+        await self.send_forecast(interaction, "French Ligue 1")
 
-    @discord.ui.button(label="League 6", style=discord.ButtonStyle.secondary, custom_id="get_forecast6")
+    @discord.ui.button(label="Eredivisie", style=discord.ButtonStyle.secondary, custom_id="get_forecast6")
     async def forecast_button6(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.send_forecast(interaction, "League 6")
+        await self.send_forecast(interaction, "Eredivisie")
 
 
 
