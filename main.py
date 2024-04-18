@@ -74,8 +74,9 @@ def kambi(url):
 # BETWAY
 def betway(url, cookies, headers, json_data, players_s, players_sot, kambi_s, kambi_sot):
 
-    betway_shots_odds = players_s
-    betway_shots_on_target_odds = players_sot
+    betway_shots_odds = copy.deepcopy(players_s)
+    betway_shots_on_target_odds = copy.deepcopy(players_sot)
+
     # Get the list of all possible events during the game using POST method because GET is not supported by this server
     # To get the odds for specific game the "EventId" should be changed in betway_json_data variable in conf file
     data = post(
@@ -144,8 +145,9 @@ def betway(url, cookies, headers, json_data, players_s, players_sot, kambi_s, ka
 
 # SPORTSBOOK
 def sportsbook(url, players_s, players_sot, kambi_s, kambi_sot):
-    sportsbook_shots_on_target_odds = players_sot
-    sportsbook_shots_odds = players_s
+    sportsbook_shots_on_target_odds = copy.deepcopy(players_sot)
+    sportsbook_shots_odds = copy.deepcopy(players_s)
+
     sportsbook_data = get(url).json()["eventmarketgroups"]
     filtered_data = list()
     for i in range(len(sportsbook_data)):
@@ -195,8 +197,9 @@ def sportsbook(url, players_s, players_sot, kambi_s, kambi_sot):
 # BetOnline Props
 def betonline_props(url_shots, url_shots_on_target, players_s, players_sot, kambi_s, kambi_sot):
 
-    betonline_props_shots_on_target_odds = players_sot
-    betonline_props_shots_odds = players_s
+    betonline_props_shots_on_target_odds = copy.deepcopy(players_sot)
+    betonline_props_shots_odds = copy.deepcopy(players_s)
+
     betonline_props_data_shots = get(url_shots).json()[0]["players"]
     betonline_props_data_shots_on_target = get(url_shots_on_target).json()[0]["players"]
 
@@ -230,8 +233,8 @@ def betonline_props(url_shots, url_shots_on_target, players_s, players_sot, kamb
 
 # Pointsbet
 def pointsbet(url, header, players_s, players_sot, kambi_s, kambi_sot):
-    pointsbet_shots_on_target_odds = players_sot
-    pointsbet_shots_odds = players_s
+    pointsbet_shots_on_target_odds = copy.deepcopy(players_sot)
+    pointsbet_shots_odds = copy.deepcopy(players_s)
     pointsbet_data = get(url, headers=header).json()["fixedOddsMarkets"]
 
     pointsbet_shots_data = list()
@@ -267,7 +270,7 @@ def pointsbet(url, header, players_s, players_sot, kambi_s, kambi_sot):
             goal = player["points"] - 0.5
             odds = math.floor(
                 (player["price"] - 1) * 100 if player["price"] >= 2 else -100 / (player["price"] - 1))
-            if goal in kambi_s[name_flag]["goal"]:
+            if goal in kambi_sot[name_flag]["goal"]:
                 pointsbet_shots_on_target_odds[name_flag]["goal"].append(goal)
                 pointsbet_shots_on_target_odds[name_flag]["odd"].append(odds)
 
