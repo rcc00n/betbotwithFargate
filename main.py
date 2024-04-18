@@ -3,6 +3,7 @@ from conf import betway_cookies, betway_json_data, betway_headers, pointsbet_hea
 from requests import get, post
 import time
 import copy
+import concurrent.futures
 
 start_time = time.time()
 
@@ -159,8 +160,8 @@ def sportsbook(url, players_s, players_sot, kambi_s, kambi_sot):
 
     for event in range(len(sportsbook_data_shots_on_target)):
         for player in sportsbook_data_shots_on_target[event]["selections"]:
-
-            name_flag = check_string_in_array(players_s.keys(), player["name"])
+            name = player["name"].split()[-1]
+            name_flag = check_string_in_array(players_sot.keys(), name)
             if name_flag:
 
             # Shots on target
@@ -177,7 +178,8 @@ def sportsbook(url, players_s, players_sot, kambi_s, kambi_sot):
     for event in range(len(sportsbook_data_shots)):
         for player in sportsbook_data_shots[event]["selections"]:
 
-            name_flag = check_string_in_array(players_s.keys(), player["name"])
+            name = player["name"].split()[-1]
+            name_flag = check_string_in_array(players_s.keys(), name)
             if name_flag:
                 # Shots
                 # Variables to calculate odds for each event
@@ -277,12 +279,21 @@ def pointsbet(url, header, players_s, players_sot, kambi_s, kambi_sot):
     return pointsbet_shots_odds, pointsbet_shots_on_target_odds
 
 
-kambi_shots, kambi_shots_on_target, kambi_shots_under, kambi_shots_on_target_under, players_shot, players_shot_on_target = kambi(url_kambi)
-betway_shots, betway_shots_on_target = betway(url_betway, betway_cookies, betway_headers, betway_json_data, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target,)
-sportsbook_shot, sportsbook_shots_on_targe = sportsbook(url_sportsbook, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target,)
-betonline_props_shots, betonline_props_shots_on_target = betonline_props(url_betonline_props_shots, url_betonline_props_shots_on_target, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target,)
-pointsbet_shots, pointsbet_shots_on_target = pointsbet(url_points_bet_shots, pointsbet_headers, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target,)
+for i in range(108):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future1 = executor.submit(kambi, url_kambi)
+        kambi_shots, kambi_shots_on_target, kambi_shots_under, kambi_shots_on_target_under, players_shot, players_shot_on_target = future1.result()
 
+        future2 = executor.submit(betway, url_betway, betway_cookies, betway_headers, betway_json_data, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
+        future3 = executor.submit(sportsbook, url_sportsbook, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
+        future4 = executor.submit(betonline_props, url_betonline_props_shots, url_betonline_props_shots_on_target, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
+        future5 = executor.submit(pointsbet, url_points_bet_shots, pointsbet_headers, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
+
+        # kambi_shots, kambi_shots_on_target, kambi_shots_under, kambi_shots_on_target_under, players_shot, players_shot_on_target = kambi(url_kambi)
+        betway_shots, betway_shots_on_target = future2.result()  # betway(url_betway, betway_cookies, betway_headers, betway_json_data, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
+        sportsbook_shot, sportsbook_shots_on_targe = future3.result()  # sportsbook(url_sportsbook, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
+        betonline_props_shots, betonline_props_shots_on_target = future4.result() # betonline_props(url_betonline_props_shots, url_betonline_props_shots_on_target, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
+        pointsbet_shots, pointsbet_shots_on_target = future5.result()  # pointsbet(url_points_bet_shots, pointsbet_headers, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
 
 end_time = time.time()
 
@@ -290,44 +301,32 @@ print(end_time-start_time)
 
 # Sorting by Kambi
 
-print("Kambi Shots")
-print(kambi_shots)
-print("")
-print("Kambi shots on target")
-print(kambi_shots_on_target)
-print("")
-print("Betway Shots")
-print(betway_shots)
-print("")
-print("Betway Shots on target")
-print(betway_shots_on_target)
-print("")
-print("Sportsbook Shots")
-print(sportsbook_shot)
-print("")
-print("Sportsbook Shots on Target")
-print(sportsbook_shots_on_targe)
-print("")
-print("Betonline Shots")
-print(betonline_props_shots)
-print("")
-print("Betonline Shots On target")
-print(betonline_props_shots_on_target)
-print("")
-print("Pointsbet Shots")
-print(pointsbet_shots)
-print("")
-print("Pointsbet Shots On target")
-print(pointsbet_shots_on_target)
-#
-# for k, v in betonline_props_shots_on_target.items():
-#     print(k, v)
-#
-# for k, v in betonline_props_shots_on_target.items():
-#     print(k, v)
-#
-# for k, v in betonline_props_shots_on_target.items():
-#     print(k, v)
-#
-# for k, v in betonline_props_shots_on_target.items():
-#     print(k, v)
+# print("Kambi Shots")
+# print(kambi_shots)
+# print("")
+# print("Kambi shots on target")
+# print(kambi_shots_on_target)
+# print("")
+# print("Betway Shots")
+# print(betway_shots)
+# print("")
+# print("Betway Shots on target")
+# print(betway_shots_on_target)
+# print("")
+# print("Sportsbook Shots")
+# print(sportsbook_shot)
+# print("")
+# print("Sportsbook Shots on Target")
+# print(sportsbook_shots_on_targe)
+# print("")
+# print("Betonline Shots")
+# print(betonline_props_shots)
+# print("")
+# print("Betonline Shots On target")
+# print(betonline_props_shots_on_target)
+# print("")
+# print("Pointsbet Shots")
+# print(pointsbet_shots)
+# print("")
+# print("Pointsbet Shots On target")
+# print(pointsbet_shots_on_target)
