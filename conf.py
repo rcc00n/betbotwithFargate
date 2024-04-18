@@ -94,3 +94,28 @@ pointsbet_headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
 }
 
+
+def are_nearly_equal(str1, str2):
+    # Check if the lengths of the strings are the same
+    if len(str1) != len(str2):
+        return False
+
+    # Count the number of differing characters
+    diff_count = 0
+    for ch1, ch2 in zip(str1, str2):
+        if ch1 != ch2:
+            diff_count += 1
+            # Early exit if more than one difference is found
+            if diff_count > 1:
+                return False
+
+    # Return True if the differences are 0 or 1
+    return str1
+
+
+def check_string_in_array(array, target):
+    for string in array:
+        flag = are_nearly_equal(string, target)
+        if flag:
+            return flag
+    return False
