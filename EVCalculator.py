@@ -6,24 +6,15 @@ This file will proceed in the following steps:
 4. return fair value by using: implied probabilities / total probabilities
 """
 import random  # Importing the random module for generating random numbers
-from tqdm import tqdm  # Importing tqdm for progress bar visualization
-
-pbar = tqdm(total=20000)  # Initializing a progress bar with a total of 20000 iterations
 
 
-def convert_to_american_odds(input_odds):
-    '''
-    This function is for converting our odds to American odds
-    :param input_odds: The input odds to be converted
-    :return: The converted American odds
-    '''
-    numerator = 100
-    denominator = 100
-    if input_odds > 0:  # Checking if the input odds are positive
-        numerator = input_odds
+def convert_to_decimal_odds(american_odds):
+    if american_odds > 0:
+        return 1 + american_odds / 100
+    elif american_odds < 0:
+        return 1 + 100 / abs(american_odds)
     else:
-        denominator = input_odds * -1  # If the input odds are negative, converting to positive for calculation
-    return 1 + (numerator / denominator)  # Returning the American odds
+        raise ValueError("Odds cannot be zero")
 
 
 def implied_probabilities(american_odds):
@@ -35,21 +26,18 @@ def implied_probabilities(american_odds):
     return 1 / american_odds  # Calculating and returning the implied probability
 
 
-def total_implied_probabilities(over_american_odds, under_american_odds):
-    '''
-    This function is for calculating total implied probabilities
-    :param over_american_odds: The American odds for over
-    :param under_american_odds: The American odds for under
-    :return: The total implied probabilities
-    '''
-    return over_american_odds + under_american_odds  # Calculating and returning the total implied probabilities
+def total_implied_probabilities(over_implied, under_implied):
+    return over_implied + under_implied
+
 
 
 def market_juice_calculation(total_implied_prob):
     return total_implied_prob - 1
 
 def EV_calculation(fair_value_probabilities, final_odds_decimal):
-    return fair_value_probabilities * final_odds_decimal - (1 - fair_value_probabilities)
+    x = fair_value_probabilities * final_odds_decimal
+    y = 1 - fair_value_probabilities
+    return x - y
 
 def main(over, under, final):
     '''
@@ -59,16 +47,15 @@ def main(over, under, final):
     :param under: The odds for under
     :return: The calculated probability of over
     '''
-    over_decimal = convert_to_american_odds(over)  # Converting over odds to American odds
-    under_decimal = convert_to_american_odds(under)  # Converting under odds to American odds
-    final_decimal = convert_to_american_odds(final) - 1
+    over_decimal = convert_to_decimal_odds(over)  # Converting over odds to American odds
+    under_decimal = convert_to_decimal_odds(under)  # Converting under odds to American odds
+    final_decimal = convert_to_decimal_odds(final) - 1
     over_implied = implied_probabilities(over_decimal)  # Calculating implied probability for over
     under_implied = implied_probabilities(under_decimal)  # Calculating implied probability for under
     total_implied = total_implied_probabilities(over_implied, under_implied)  # Calculating total implied probabilities
     market_juice = market_juice_calculation(total_implied)
     fair_value = over_implied / total_implied
     EV_percentage = EV_calculation(fair_value, final_decimal)
-    print("final decimal: " + str(final_decimal))
     return fair_value, market_juice, EV_percentage  # Returning the probability of over
 
 
@@ -88,9 +75,9 @@ def calculation_per_website(over_dict: dict, under_dict: dict, final_dict: dict)
         print('over: ' + str(over))
         print('under: ' + str(under))
         fair_value, market_juice, EV_percentage = main(over, under, final)
-        print("market juice: " + str(market_juice * 100) + '%')  # Calling the main function and printing the result
-        print("Fair value: " + str(fair_value * 100) + '%')
-        print('EV_percentage: ' + str(EV_percentage))
+        print("market juice: " + str(round(market_juice * 100, 1)) + '%')  # Calling the main function and printing the result
+        print("Fair value: " + str(round(fair_value * 100, 1)) + '%')
+        print('EV_percentage: ' + str(round(EV_percentage * 100, 1)) + '%')
         print('================================')
 
 
@@ -119,7 +106,21 @@ kambi_under = {'Townsend': {'goal': [0.5], 'odd': ['-200']}, 'Onyedinma': {'goal
                'Maupay': {'goal': [0.5], 'odd': ['102']}}
 
 
-kambi_final = {'Townsend': {'goal': [1.5, 3.5, 4.5, 0.5, 2.5], 'odd': ['800', '7900', '20000', '125', '2900']}, 'Onyedinma': {'goal': [0.5, 4.5, 1.5, 3.5, 2.5], 'odd': ['125', '20000', '800', '7900', '2900']}, 'Morris': {'goal': [1.5, 0.5, 3.5, 4.5, 2.5], 'odd': ['100', '-400', '1000', '2400', '400']}, 'Woodrow': {'goal': [], 'odd': []}, 'Chong': {'goal': [3.5, 2.5, 0.5, 1.5, 4.5], 'odd': ['7400', '2400', '100', '700', '17500']}, 'Berry': {'goal': [1.5, 4.5, 2.5, 0.5, 3.5], 'odd': ['800', '20000', '2900', '125', '7900']}, 'Barkley': {'goal': [4.5, 0.5, 1.5, 2.5, 3.5], 'odd': ['10000', '-143', '400', '1300', '3400']}, 'Clark': {'goal': [1.5, 0.5, 4.5, 2.5, 3.5], 'odd': ['800', '125', '20000', '2900', '7900']}, 'Ghoddos': {'goal': [], 'odd': []}, 'Schade': {'goal': [], 'odd': []}, 'Onyeka': {'goal': [4.5, 2.5, 3.5, 0.5, 1.5], 'odd': ['20000', '2900', '7900', '125', '800']}, 'Baptiste': {'goal': [], 'odd': []}, 'Lewis-Potter': {'goal': [1.5, 0.5, 4.5, 3.5, 2.5], 'odd': ['500', '-125', '12500', '3900', '1600']}, 'Yarmolyuk': {'goal': [], 'odd': []}, 'Wissa': {'goal': [4.5, 0.5, 2.5, 3.5, 1.5], 'odd': ['6400', '-200', '900', '2400', '250']}, 'Trevitt': {'goal': [], 'odd': []}, 'Toney': {'goal': [2.5, 0.5, 1.5, 3.5, 4.5], 'odd': ['600', '-286', '150', '1400', '4400']}, 'Reguilón': {'goal': [], 'odd': []}, 'Mbeumo': {'goal': [1.5, 3.5, 2.5, 0.5, 4.5], 'odd': ['100', '1000', '400', '-400', '2400']}, 'Damsgaard': {'goal': [0.5, 2.5, 3.5, 1.5, 4.5], 'odd': ['125', '2900', '7900', '800', '20000']}, 'Maupay': {'goal': [4.5, 3.5, 2.5, 1.5, 0.5], 'odd': ['2900', '1100', '500', '125', '-334']}}
+kambi_final = {'Townsend': {'goal': [1.5, 3.5, 4.5, 0.5, 2.5], 'odd': ['800', '7900', '20000', '125', '2900']},
+               'Onyedinma': {'goal': [0.5, 4.5, 1.5, 3.5, 2.5], 'odd': ['125', '20000', '800', '7900', '2900']},
+               'Morris': {'goal': [1.5, 0.5, 3.5, 4.5, 2.5], 'odd': ['100', '-400', '1000', '2400', '400']},
+               'Woodrow': {'goal': [], 'odd': []}, 'Chong': {'goal': [3.5, 2.5, 0.5, 1.5, 4.5], 'odd': ['7400', '2400', '100', '700', '17500']},
+               'Berry': {'goal': [1.5, 4.5, 2.5, 0.5, 3.5], 'odd': ['800', '20000', '2900', '125', '7900']},
+               'Barkley': {'goal': [4.5, 0.5, 1.5, 2.5, 3.5], 'odd': ['10000', '-143', '400', '1300', '3400']},
+               'Clark': {'goal': [1.5, 0.5, 4.5, 2.5, 3.5], 'odd': ['800', '125', '20000', '2900', '7900']},
+               'Ghoddos': {'goal': [], 'odd': []}, 'Schade': {'goal': [], 'odd': []},
+               'Onyeka': {'goal': [4.5, 2.5, 3.5, 0.5, 1.5], 'odd': ['20000', '2900', '7900', '125', '800']},
+               'Baptiste': {'goal': [], 'odd': []}, 'Lewis-Potter': {'goal': [1.5, 0.5, 4.5, 3.5, 2.5], 'odd': ['500', '-125', '12500', '3900', '1600']},
+               'Yarmolyuk': {'goal': [], 'odd': []}, 'Wissa': {'goal': [4.5, 0.5, 2.5, 3.5, 1.5], 'odd': ['6400', '-200', '900', '2400', '250']},
+               'Trevitt': {'goal': [], 'odd': []}, 'Toney': {'goal': [2.5, 0.5, 1.5, 3.5, 4.5], 'odd': ['600', '-286', '150', '1400', '4400']},
+               'Reguilón': {'goal': [], 'odd': []}, 'Mbeumo': {'goal': [1.5, 3.5, 2.5, 0.5, 4.5], 'odd': ['100', '1000', '400', '-400', '2400']},
+               'Damsgaard': {'goal': [0.5, 2.5, 3.5, 1.5, 4.5], 'odd': ['125', '2900', '7900', '800', '20000']},
+               'Maupay': {'goal': [4.5, 3.5, 2.5, 1.5, 0.5], 'odd': ['2900', '1100', '500', '125', '-334']}}
 
 
 calculation_per_website(kambi_over, kambi_under, kambi_final)
