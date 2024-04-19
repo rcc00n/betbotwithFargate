@@ -4,7 +4,8 @@ from requests import get, post
 import time
 import copy
 import concurrent.futures
-
+import EVCalculator as calculator
+from tqdm import tqdm
 start_time = time.time()
 
 # Game Id's
@@ -279,7 +280,9 @@ def pointsbet(url, header, players_s, players_sot, kambi_s, kambi_sot):
     return pointsbet_shots_odds, pointsbet_shots_on_target_odds
 
 
+pbar = tqdm(total=108)
 for i in range(108):
+    pbar.update(1)
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future1 = executor.submit(kambi, url_kambi)
         kambi_shots, kambi_shots_on_target, kambi_shots_under, kambi_shots_on_target_under, players_shot, players_shot_on_target = future1.result()
@@ -295,38 +298,25 @@ for i in range(108):
         betonline_props_shots, betonline_props_shots_on_target = future4.result() # betonline_props(url_betonline_props_shots, url_betonline_props_shots_on_target, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
         pointsbet_shots, pointsbet_shots_on_target = future5.result()  # pointsbet(url_points_bet_shots, pointsbet_headers, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
 
+
 end_time = time.time()
+print('scraping done, finish time: ' + str(end_time))
+br = tqdm(total=8)
+calculator.calculation_per_website(kambi_shots, kambi_shots_under, betway_shots)
+br.update(1)
+calculator.calculation_per_website(kambi_shots, kambi_shots_under, sportsbook_shot)
+br.update(1)
+calculator.calculation_per_website(kambi_shots, kambi_shots_under, betonline_props_shots)
+br.update(1)
+calculator.calculation_per_website(kambi_shots, kambi_shots_under, pointsbet_shots)
+br.update(1)
+calculator.calculation_per_website(kambi_shots_on_target, kambi_shots_on_target_under, betway_shots_on_target)
+br.update(1)
+calculator.calculation_per_website(kambi_shots_on_target, kambi_shots_on_target_under, sportsbook_shots_on_targe)
+br.update(1)
+calculator.calculation_per_website(kambi_shots_on_target, kambi_shots_on_target_under, betonline_props_shots_on_target)
+br.update(1)
+calculator.calculation_per_website(kambi_shots_on_target, kambi_shots_on_target_under, pointsbet_shots_on_target)
+br.update(1)
+br.close()
 
-print(end_time-start_time)
-
-# Sorting by Kambi
-
-# print("Kambi Shots")
-# print(kambi_shots)
-# print("")
-# print("Kambi shots on target")
-# print(kambi_shots_on_target)
-# print("")
-# print("Betway Shots")
-# print(betway_shots)
-# print("")
-# print("Betway Shots on target")
-# print(betway_shots_on_target)
-# print("")
-# print("Sportsbook Shots")
-# print(sportsbook_shot)
-# print("")
-# print("Sportsbook Shots on Target")
-# print(sportsbook_shots_on_targe)
-# print("")
-# print("Betonline Shots")
-# print(betonline_props_shots)
-# print("")
-# print("Betonline Shots On target")
-# print(betonline_props_shots_on_target)
-# print("")
-# print("Pointsbet Shots")
-# print(pointsbet_shots)
-# print("")
-# print("Pointsbet Shots On target")
-# print(pointsbet_shots_on_target)
