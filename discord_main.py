@@ -2,6 +2,7 @@ import discord
 import logging
 import datetime
 
+
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 global white_list

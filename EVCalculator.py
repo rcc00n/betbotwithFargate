@@ -60,23 +60,38 @@ def main(over, under, final):
 
 
 def calculation_per_website(over_dict: dict, under_dict: dict, final_dict: dict):
+    return_value = {}  # this is the dictionary we going to return such that contain all the information
     player_name_list = list(over_dict.keys())
-    for i in range(len(player_name_list)):
+    for i in range(len(player_name_list)):  # obtain the value of dictionary based on the key that is players name
         player_name_over_dict = over_dict.get(player_name_list[i])
-        over = int(player_name_over_dict.get('odd')[0])
+        over_list = player_name_over_dict.get('odd')
         player_name_under_dict = under_dict.get(player_name_list[i])
-        under = int(player_name_under_dict.get('odd')[0])
+        under_list = player_name_under_dict.get('odd')
         player_name_final_dict = final_dict.get(player_name_list[i])
-        final = player_name_final_dict.get('odd')[0]
-        if over == 0 or under == 0:  # Checking if the denominator or numerator is zero
-            continue  # Skipping the iteration if either is zero
-        print('player name: ' + str(player_name_list[i]))
-        print('over: ' + str(over))
-        print('under: ' + str(under))
-        fair_value, market_juice, EV_percentage = main(over, under, final)
-        print("market juice: " + str(round(market_juice * 100, 1)) + '%')  # Calling the main function and printing the result
-        print("Fair value: " + str(round(fair_value * 100, 1)) + '%')
-        print('EV_percentage: ' + str(round(EV_percentage * 100, 1)) + '%')
-        print('================================')
+        final_list = player_name_final_dict.get('odd')
+        for over_odds, under_odds, final_odds in zip(over_list, under_list, final_list):  # obtain the
+            over = int(over_odds)
+            under = int(under_odds)
+            final = int(final_odds)
+            fair_value_list = []
+            market_juice_list = []
+            EV_percentage_list = []
+            if over == 0 or under == 0 or final is None:  # Checking if the denominator or numerator is zero
+                continue  # Skipping the iteration if either is zero
+            print('player name: ' + str(player_name_list[i]))
+            print('over: ' + str(over))
+            print('under: ' + str(under))
+            print("final_odds: " + str(final))
+            fair_value, market_juice, EV_percentage = main(over, under, final)
+            fair_value_list.append(fair_value)
+            market_juice_list.append(market_juice)
+            EV_percentage_list.append(EV_percentage)
+            print("market juice: " + str(round(market_juice * 100, 1)) + '%')  # Calling the main function and printing the result
+            print("Fair value: " + str(round(fair_value * 100, 1)) + '%')
+            print('EV_percentage: ' + str(round(EV_percentage * 100, 1)) + '%')
+            print('================================')
+
+
+
 
 
