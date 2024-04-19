@@ -3,6 +3,7 @@ from conf import betway_cookies, betway_json_data, betway_headers, pointsbet_hea
 from requests import get, post
 import time
 import copy
+import concurrent.futures
 
 start_time = time.time()
 
@@ -11,7 +12,7 @@ kambi_game_id = 1019734392
 sportsbook_game_id = 1679428.3
 betonline_props_game_id = 184251
 betway_game_id = 13502524
-pointsbet_game_id = 531210
+pointsbet_game_id = 527367
 
 # URL's
 url_kambi = f"https://eu-offering-api.kambicdn.com/offering/v2018/pivusinrl-law/betoffer/event/{kambi_game_id}.json?lang=en_US&market=US&client_id=2&channel_id=7&ncid=1712278601199&includeParticipants=true"
@@ -73,8 +74,9 @@ def kambi(url):
 
 # BETWAY
 def betway(url, cookies, headers, json_data, players_s, players_sot, kambi_s, kambi_sot):
-    betway_shots_odds = players_s
-    betway_shots_on_target_odds = players_sot
+
+    betway_shots_odds = copy.deepcopy(players_s)
+    betway_shots_on_target_odds = copy.deepcopy(players_sot)
 
     # Get the list of all possible events during the game using POST method because GET is not supported by this server
     # To get the odds for specific game the "EventId" should be changed in betway_json_data variable in conf file
@@ -102,15 +104,17 @@ def betway(url, cookies, headers, json_data, players_s, players_sot, kambi_s, ka
 
             # Get the players name from the name string
             player_name = " ".join(split_name[:spliter])
-
-            if player_name in players_sot.keys():
+            player_name = player_name.split()[-1]
+            name_flag = check_string_in_array(players_sot.keys(), player_name)
+            if name_flag:
                 # Get the minimum number of goals the player should score from the name string and minus 0.5
                 goal = int("".join(event["BetName"].split()[spliter:spliter+1])[0]) - 0.5
                 # Get the odds in decimal format and covert it to American
                 odd = math.floor((event["OddsDecimal"] - 1) * 100 if event["OddsDecimal"] >= 2 else -100 / (event["OddsDecimal"] - 1))
+                if goal in kambi_sot[name_flag]["goal"]:
 
-                betway_shots_on_target_odds[player_name]["goal"].append(goal)
-                betway_shots_on_target_odds[player_name]["odd"].append(odd)
+                    betway_shots_on_target_odds[name_flag]["goal"].append(goal)
+                    betway_shots_on_target_odds[name_flag]["odd"].append(odd)
 
         elif event["BetName"].endswith("Shots") and len(event["BetName"]) < 30 and "Match" not in event["BetName"] and "Team" not in event["BetName"]:
             # Betway Shots
@@ -125,25 +129,26 @@ def betway(url, cookies, headers, json_data, players_s, players_sot, kambi_s, ka
 
             # Get the players name from the name string
             player_name = " ".join(split_name[:spliter])
+            player_name = player_name.split()[-1]
             # Get the minimum number of goals the player should score from the name string and minus 0.5
-
-            if player_name in players_s.keys():
+            name_flag = check_string_in_array(players_s.keys(), player_name)
+            if name_flag:
                 # Get the minimum number of goals the player should score from the name string and minus 0.5
                 goal = int("".join(event["BetName"].split()[spliter:spliter + 1])[0]) - 0.5
                 # Get the odds in decimal format and covert it to American
                 odd = math.floor((event["OddsDecimal"] - 1) * 100 if event["OddsDecimal"] >= 2 else -100 / (
                             event["OddsDecimal"] - 1))
-
-                betway_shots_odds[player_name]["goal"].append(goal)
-                betway_shots_odds[player_name]["odd"].append(odd)
-
+                if goal in kambi_s[name_flag]["goal"]:
+                    betway_shots_odds[name_flag]["goal"].append(goal)
+                    betway_shots_odds[name_flag]["odd"].append(odd)
     return betway_shots_odds, betway_shots_on_target_odds
 
 
 # SPORTSBOOK
 def sportsbook(url, players_s, players_sot, kambi_s, kambi_sot):
-    sportsbook_shots_on_target_odds = list()
-    sportsbook_shots_odds = list()
+    sportsbook_shots_on_target_odds = copy.deepcopy(players_sot)
+    sportsbook_shots_odds = copy.deepcopy(players_s)
+
     sportsbook_data = get(url).json()["eventmarketgroups"]
     filtered_data = list()
     for i in range(len(sportsbook_data)):
@@ -155,34 +160,48 @@ def sportsbook(url, players_s, players_sot, kambi_s, kambi_sot):
 
     for event in range(len(sportsbook_data_shots_on_target)):
         for player in sportsbook_data_shots_on_target[event]["selections"]:
+            name = player["name"].split()[-1]
+            name_flag = check_string_in_array(players_sot.keys(), name)
+            if name_flag:
+
             # Shots on target
             # Variables to calculate odds for each event
-            price_up = player["currentpriceup"]
-            price_down = player["currentpricedown"]
+                price_up = player["currentpriceup"]
+                price_down = player["currentpricedown"]
+                if (event + 0.5) in kambi_sot[name_flag]["goal"]:
 
-            # Special formula for this website
-            odd = int((price_up * 100) / price_down) if price_up > price_down else int((price_down * 100) / price_up * (-1))
-            sportsbook_shots_on_target_odds.append({player["name"]: {"goal": event+0.5, "odd": odd}})
+                    # Special formula for this website
+                    odd = int((price_up * 100) / price_down) if price_up > price_down else int((price_down * 100) / price_up * (-1))
 
+                    sportsbook_shots_on_target_odds[name_flag]["goal"].append(event+0.5)
+                    sportsbook_shots_on_target_odds[name_flag]["odd"].append(odd)
     for event in range(len(sportsbook_data_shots)):
         for player in sportsbook_data_shots[event]["selections"]:
-            # Shots
-            # Variables to calculate odds for each event
-            price_up = player["currentpriceup"]
-            price_down = player["currentpricedown"]
 
-            # Special formula for this website
-            odd = int((price_up * 100) / price_down) if price_up > price_down else int((price_down * 100) / price_up * (-1))
+            name = player["name"].split()[-1]
+            name_flag = check_string_in_array(players_s.keys(), name)
+            if name_flag:
+                # Shots
+                # Variables to calculate odds for each event
 
-            sportsbook_shots_odds.append({player["name"]: {"goal": event + 0.5, "odd": odd}})
+                price_up = player["currentpriceup"]
+                price_down = player["currentpricedown"]
+                if (event + 0.5) in kambi_s[name_flag]["goal"]:
+                # Special formula for this website
+                    odd = int((price_up * 100) / price_down) if price_up > price_down else int((price_down * 100) / price_up * (-1))
+
+                    sportsbook_shots_odds[name_flag]["goal"].append(event + 0.5)
+                    sportsbook_shots_odds[name_flag]["odd"].append(odd)
+
     return sportsbook_shots_odds, sportsbook_shots_on_target_odds
 
 
 # BetOnline Props
 def betonline_props(url_shots, url_shots_on_target, players_s, players_sot, kambi_s, kambi_sot):
 
-    betonline_props_shots_on_target_odds = players_sot
-    betonline_props_shots_odds = players_s
+    betonline_props_shots_on_target_odds = copy.deepcopy(players_sot)
+    betonline_props_shots_odds = copy.deepcopy(players_s)
+
     betonline_props_data_shots = get(url_shots).json()[0]["players"]
     betonline_props_data_shots_on_target = get(url_shots_on_target).json()[0]["players"]
 
@@ -210,13 +229,14 @@ def betonline_props(url_shots, url_shots_on_target, players_s, players_sot, kamb
                         (event["odds"] - 1) * 100 if event["odds"] >= 2 else -100 / (event["odds"] - 1))
                     betonline_props_shots_odds[name_flag]["goal"].append(event["value"] - 0.5)
                     betonline_props_shots_odds[name_flag]["odd"].append(odds)
+
     return betonline_props_shots_odds, betonline_props_shots_on_target_odds
 
 
 # Pointsbet
 def pointsbet(url, header, players_s, players_sot, kambi_s, kambi_sot):
-    pointsbet_shots_on_target_odds = list()
-    pointsbet_shots_odds = list()
+    pointsbet_shots_on_target_odds = copy.deepcopy(players_sot)
+    pointsbet_shots_odds = copy.deepcopy(players_s)
     pointsbet_data = get(url, headers=header).json()["fixedOddsMarkets"]
 
     pointsbet_shots_data = list()
@@ -233,28 +253,47 @@ def pointsbet(url, header, players_s, players_sot, kambi_s, kambi_sot):
             break
 
     for player in pointsbet_shots_data:
-        name = player["name"].split(" To ")[0]
-        goal = player["points"] - 0.5
-        odds = math.floor(
-            (player["price"] - 1) * 100 if player["price"] >= 2 else -100 / (player["price"] - 1))
-        pointsbet_shots_odds.append({name: {"type": "Over", "goal": goal, "odd": odds}})
+        name = player["name"].split(" To ")[0].split()[-1]
+        name_flag = check_string_in_array(players_s.keys(), name)
+        if name_flag:
+            goal = player["points"] - 0.5
+            odds = math.floor(
+                (player["price"] - 1) * 100 if player["price"] >= 2 else -100 / (player["price"] - 1))
+            if goal in kambi_s[name_flag]["goal"]:
+                pointsbet_shots_odds[name_flag]["goal"].append(goal)
+                pointsbet_shots_odds[name_flag]["odd"].append(odds)
 
     for player in pointsbet_shots_on_target_data:
-        name = player["name"].split(" To ")[0]
-        goal = player["points"] - 0.5
-        odds = math.floor(
-            (player["price"] - 1) * 100 if player["price"] >= 2 else -100 / (player["price"] - 1))
-        pointsbet_shots_on_target_odds.append({name: {"type": "Over", "goal": goal, "odd": odds}})
+
+        name = player["name"].split(" To ")[0].split()[-1]
+
+        name_flag = check_string_in_array(players_s.keys(), name)
+        if name_flag:
+            goal = player["points"] - 0.5
+            odds = math.floor(
+                (player["price"] - 1) * 100 if player["price"] >= 2 else -100 / (player["price"] - 1))
+            if goal in kambi_sot[name_flag]["goal"]:
+                pointsbet_shots_on_target_odds[name_flag]["goal"].append(goal)
+                pointsbet_shots_on_target_odds[name_flag]["odd"].append(odds)
 
     return pointsbet_shots_odds, pointsbet_shots_on_target_odds
 
 
-kambi_shots, kambi_shots_on_target, kambi_shots_under, kambi_shots_on_target_under, players_shot, players_shot_on_target = kambi(url_kambi)
-betway_shots, betway_shots_on_target = betway(url_betway, betway_cookies, betway_headers, betway_json_data, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target,)
-sportsbook_shot, sportsbook_shots_on_targe = sportsbook(url_sportsbook, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target,)
-betonline_props_shots, betonline_props_shots_on_target = betonline_props(url_betonline_props_shots, url_betonline_props_shots_on_target, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target,)
-pointsbet_shots, pointsbet_shots_on_target = pointsbet(url_points_bet_shots, pointsbet_headers, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target,)
+for i in range(108):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future1 = executor.submit(kambi, url_kambi)
+        kambi_shots, kambi_shots_on_target, kambi_shots_under, kambi_shots_on_target_under, players_shot, players_shot_on_target = future1.result()
 
+        future2 = executor.submit(betway, url_betway, betway_cookies, betway_headers, betway_json_data, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
+        future3 = executor.submit(sportsbook, url_sportsbook, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
+        future4 = executor.submit(betonline_props, url_betonline_props_shots, url_betonline_props_shots_on_target, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
+        future5 = executor.submit(pointsbet, url_points_bet_shots, pointsbet_headers, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
+
+        # kambi_shots, kambi_shots_on_target, kambi_shots_under, kambi_shots_on_target_under, players_shot, players_shot_on_target = kambi(url_kambi)
+        betway_shots, betway_shots_on_target = future2.result()  # betway(url_betway, betway_cookies, betway_headers, betway_json_data, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
+        sportsbook_shot, sportsbook_shots_on_targe = future3.result()  # sportsbook(url_sportsbook, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
+        betonline_props_shots, betonline_props_shots_on_target = future4.result() # betonline_props(url_betonline_props_shots, url_betonline_props_shots_on_target, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
+        pointsbet_shots, pointsbet_shots_on_target = future5.result()  # pointsbet(url_points_bet_shots, pointsbet_headers, players_shot, players_shot_on_target, kambi_shots, kambi_shots_on_target)
 
 end_time = time.time()
 
@@ -262,5 +301,32 @@ print(end_time-start_time)
 
 # Sorting by Kambi
 
-for k, v in betonline_props_shots_on_target.items():
-    print(k, v)
+# print("Kambi Shots")
+# print(kambi_shots)
+# print("")
+# print("Kambi shots on target")
+# print(kambi_shots_on_target)
+# print("")
+# print("Betway Shots")
+# print(betway_shots)
+# print("")
+# print("Betway Shots on target")
+# print(betway_shots_on_target)
+# print("")
+# print("Sportsbook Shots")
+# print(sportsbook_shot)
+# print("")
+# print("Sportsbook Shots on Target")
+# print(sportsbook_shots_on_targe)
+# print("")
+# print("Betonline Shots")
+# print(betonline_props_shots)
+# print("")
+# print("Betonline Shots On target")
+# print(betonline_props_shots_on_target)
+# print("")
+# print("Pointsbet Shots")
+# print(pointsbet_shots)
+# print("")
+# print("Pointsbet Shots On target")
+# print(pointsbet_shots_on_target)
