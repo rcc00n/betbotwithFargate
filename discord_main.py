@@ -1,8 +1,20 @@
 import discord
+import logging
+import datetime
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
+global white_list
+white_list = [805132684237340755, 247841957789827073] 
+admin_user_list = [805132684237340755, 247841957789827073] # Vadim's and Kenny's discord ID 
 
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s:%(levelname)s:%(name)s: %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    filename='discord_bot.log',  
+                    filemode='a')  
+
+logger = logging.getLogger('discord')
 
 class ForecastView(discord.ui.View):
     def __init__(self, data):
@@ -10,58 +22,59 @@ class ForecastView(discord.ui.View):
         self.data = data
 
     async def send_forecast(self, interaction, league_id):
-        # Prepare the embed message
-        embed = discord.Embed(title=f"{league_id} Forecast",
-                              description="Here are the forecast details for the selected league:",
-                              color=0x3498db)  # Blue color hex code
+        embed = discord.Embed(
+        description="Football Match Forecasts",
+        color=0x1F8B4C)  
+        embed.set_thumbnail(url="http://example.com/your_logo.png")  
+        embed.set_author(name="BetBot", icon_url="http://example.com/bot_icon.png")  
+        embed.set_footer(text="Data provided by BetBot", icon_url="http://example.com/footer_icon.png")
+        embed.timestamp = datetime.datetime.utcnow() 
+                
         
-        # Assuming data contains relevant data per league, adapt as necessary
         for player, details in self.data.items():
             response = self.process_player_info({player: details})
             embed.add_field(name=player, value=response, inline=False)
         
         await interaction.response.send_message(embed=embed, ephemeral=False)
-
+        logger.info(f'Sent forecast for {league_id}')
+         
     def process_player_info(self, player_data):
         player_name = list(player_data.keys())[0]
         goals = player_data[player_name]['goal'][0]
         odds = player_data[player_name]['odd'][0]
-        # Simplifying these methods or assuming they return string directly
         return (
-            f"Player name: {player_name}\n"
-            f"Goal: {goals}\n"
-            f"Odds: {odds}\n"
-            f"EV: {get_EV()}\n"
-            f"FV: {get_FV()}\n"
-            f"MJ: {get_MJ()}\n"
-            f"Website name: {get_website_name()}\n"
+            f"Player name: **{player_name}**\n"
+            f"Goal: **{goals}**\n"  
+            f"Odds: **{odds}**\n"  
+            f"EV: **{get_EV()}**\n"  
+            f"FV: **{get_FV()}**\n"  
+            f"MJ: **{get_MJ()}**\n"  
+            f"Website name: **{get_website_name()}**\n"
         )
 
-    @discord.ui.button(label="League 1", style=discord.ButtonStyle.secondary, custom_id="get_forecast1")
+    @discord.ui.button(label="EPL", style=discord.ButtonStyle.secondary, custom_id="get_forecast1")
     async def forecast_button1(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.send_forecast(interaction, "League 1")
+        await self.send_forecast(interaction, "EPL")
 
-    @discord.ui.button(label="League 2", style=discord.ButtonStyle.secondary, custom_id="get_forecast2")
+    @discord.ui.button(label="Bundesliga", style=discord.ButtonStyle.secondary, custom_id="get_forecast2")
     async def forecast_button2(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.send_forecast(interaction, "League 2")
+        await self.send_forecast(interaction, "Bundesliga")
 
-    @discord.ui.button(label="League 3", style=discord.ButtonStyle.secondary, custom_id="get_forecast3")
+    @discord.ui.button(label="Italian Serie A", style=discord.ButtonStyle.secondary, custom_id="get_forecast3")
     async def forecast_button3(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.send_forecast(interaction, "League 3")
+        await self.send_forecast(interaction, "Italian Serie A")
 
-    @discord.ui.button(label="League 4", style=discord.ButtonStyle.secondary, custom_id="get_forecast4")
+    @discord.ui.button(label="La Liga", style=discord.ButtonStyle.secondary, custom_id="get_forecast4")
     async def forecast_button4(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.send_forecast(interaction, "League 4")
+        await self.send_forecast(interaction, "La Liga")
 
-    @discord.ui.button(label="League 5", style=discord.ButtonStyle.secondary, custom_id="get_forecast5")
+    @discord.ui.button(label="French Ligue 1", style=discord.ButtonStyle.secondary, custom_id="get_forecast5")
     async def forecast_button5(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.send_forecast(interaction, "League 5")
+        await self.send_forecast(interaction, "French Ligue 1")
 
-    @discord.ui.button(label="League 6", style=discord.ButtonStyle.secondary, custom_id="get_forecast6")
+    @discord.ui.button(label="Eredivisie", style=discord.ButtonStyle.secondary, custom_id="get_forecast6")
     async def forecast_button6(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.send_forecast(interaction, "League 6")
-
-
+        await self.send_forecast(interaction, "Eredivisie")
 
 def get_EV():
     return "Example EV"
@@ -81,10 +94,54 @@ def get_player_data():
 @client.event
 async def on_ready():
     print(f'Logged in as {client.user}')
-
+    logger.info(f'Bot logged in as {client.user}')
+    
 @client.event
 async def on_message(message):
     if message.author == client.user:
+        return
+    
+    logger.info(f'Message from {message.author} (ID: {message.author.id}): {message.content}')
+
+    if message.author.id in admin_user_list:
+        content = message.content.strip().lower().split()
+        try:
+            command = content[0]
+        except IndexError:
+            await message.channel.send("Please provide a valid user ID.")
+        if command == "!adduser" and len(content) == 2:
+            try:
+                user_id_to_add = int(content[1])
+                if user_id_to_add not in white_list:
+                    white_list.append(user_id_to_add)
+                    await message.channel.send(f"User with ID {user_id_to_add} added to white list. List of allowed users: {white_list}")
+                    logger.info(f"User with ID {user_id_to_add} added to white list by admin {message.author}.")
+                    logger.info(f"List of allowed users: {white_list}")
+                else:
+                    await message.channel.send(f"User with ID {user_id_to_add} is already in the white list.")
+            except ValueError:
+                await message.channel.send("Please provide a valid user ID.")
+            return
+        elif command == "!removeuser" and len(content) == 2:
+            try:
+                user_id_to_remove = int(content[1])
+                if user_id_to_remove in white_list:
+                    white_list.remove(user_id_to_remove)
+                    await message.channel.send(f"User with ID {user_id_to_remove} removed from white list. List of allowed users: {white_list}")
+                    logger.info(f"User with ID {user_id_to_remove} removed from white list by admin {message.author}. List of allowed users: {white_list}")
+                    logger.info(f"List of allowed users: {white_list}")
+                else:
+                    await message.channel.send(f"User with ID {user_id_to_remove} is not in the white list.")
+            except ValueError:
+                await message.channel.send("Please provide a valid user ID.")
+            return
+        elif command == "!userlist":
+            await message.channel.send(f"List of allowed users: {white_list}")
+            
+            logger.info(f"List of allowed users: {white_list}")
+                    
+    if message.author.id not in white_list:
+        await message.channel.send("You are not allowed to use the bot, get a subscription")
         return
 
     if message.content.strip().lower() == "!forecast":
