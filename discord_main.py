@@ -5,8 +5,8 @@ import datetime
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 global white_list
-white_list = [805132684237340755, 247841957789827073] # Vadim's and Kenny's discord ID 
-
+white_list = [805132684237340755, 247841957789827073] 
+admin_user_list = [805132684237340755, 247841957789827073] # Vadim's and Kenny's discord ID 
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s:%(levelname)s:%(name)s: %(message)s',
@@ -76,8 +76,6 @@ class ForecastView(discord.ui.View):
     async def forecast_button6(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.send_forecast(interaction, "Eredivisie")
 
-
-
 def get_EV():
     return "Example EV"
 
@@ -105,6 +103,43 @@ async def on_message(message):
     
     logger.info(f'Message from {message.author} (ID: {message.author.id}): {message.content}')
 
+    if message.author.id in admin_user_list:
+        content = message.content.strip().lower().split()
+        try:
+            command = content[0]
+        except IndexError:
+            await message.channel.send("Please provide a valid user ID.")
+        if command == "!adduser" and len(content) == 2:
+            try:
+                user_id_to_add = int(content[1])
+                if user_id_to_add not in white_list:
+                    white_list.append(user_id_to_add)
+                    await message.channel.send(f"User with ID {user_id_to_add} added to white list. List of allowed users: {white_list}")
+                    logger.info(f"User with ID {user_id_to_add} added to white list by admin {message.author}.")
+                    logger.info(f"List of allowed users: {white_list}")
+                else:
+                    await message.channel.send(f"User with ID {user_id_to_add} is already in the white list.")
+            except ValueError:
+                await message.channel.send("Please provide a valid user ID.")
+            return
+        elif command == "!removeuser" and len(content) == 2:
+            try:
+                user_id_to_remove = int(content[1])
+                if user_id_to_remove in white_list:
+                    white_list.remove(user_id_to_remove)
+                    await message.channel.send(f"User with ID {user_id_to_remove} removed from white list. List of allowed users: {white_list}")
+                    logger.info(f"User with ID {user_id_to_remove} removed from white list by admin {message.author}. List of allowed users: {white_list}")
+                    logger.info(f"List of allowed users: {white_list}")
+                else:
+                    await message.channel.send(f"User with ID {user_id_to_remove} is not in the white list.")
+            except ValueError:
+                await message.channel.send("Please provide a valid user ID.")
+            return
+        elif command == "!userlist":
+            await message.channel.send(f"List of allowed users: {white_list}")
+            
+            logger.info(f"List of allowed users: {white_list}")
+                    
     if message.author.id not in white_list:
         await message.channel.send("You are not allowed to use the bot, get a subscription")
         return
