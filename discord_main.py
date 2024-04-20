@@ -53,11 +53,13 @@ class ForecastView(discord.ui.View):
         player_name = list(player_data.keys())[0]
         goals = player_data[player_name]['goal'][0]
         Leg_odds = "Example"
+        Game = "Example"
         Final_odds = "Example"
         Shots = "Example"
         Shots_on_goal = "Example"
+        Link = "https://example.com/"
         return(
-            f"Game: ****\n"
+            f"Game: **{Game}**\n"
             f"Player's last name: **{player_name}**\n"
             f"Goal: **{goals}**\n" 
             f"Shots: **{Shots}**\n"
@@ -67,7 +69,8 @@ class ForecastView(discord.ui.View):
             f"EV: **{get_EV()}**\n"  
             f"FV: **{get_FV()}**\n"  
             f"MJ: **{get_MJ()}**\n"  
-            f"Website name: **{get_website_name()}**\n")
+            f"Website name: **{get_website_name()}**\n"
+            f"Link: {Link}\n" )
 
     @discord.ui.button(label="🇬🇧", style=discord.ButtonStyle.secondary, custom_id="get_forecast1")
     async def forecast_button1(self, interaction: discord.Interaction, button: discord.ui.Button):
