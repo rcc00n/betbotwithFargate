@@ -1,5 +1,6 @@
 import discord
 import logging
+import logging.handlers
 import datetime
 import pytz
 
@@ -10,17 +11,18 @@ client = discord.Client(intents=intents)
 
 global white_list
 white_list = [805132684237340755, 247841957789827073] 
-# Add discord ID's here, Kenny's and Vadim's discord ID's are currently here
 admin_user_list = [805132684237340755, 247841957789827073] 
 hidden_dev_list = [805132684237340755, 247841957789827073] 
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s:%(levelname)s:%(name)s: %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S',
-                    filename='discord_bot.log',  
-                    filemode='a')  
-
+log_filename = 'discord_bot.log'
 logger = logging.getLogger('discord')
+logger.setLevel(logging.INFO)
+handler = logging.handlers.RotatingFileHandler(
+    log_filename, maxBytes=10*1024, backupCount=15)
+formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s',
+                              datefmt='%Y-%m-%d %H:%M:%S')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 class ForecastView(discord.ui.View):
     def __init__(self, data):
@@ -39,7 +41,6 @@ class ForecastView(discord.ui.View):
         embed.set_footer(text="Data provided by BetBot", icon_url="http://example.com/footer_icon.png")
         embed.timestamp = edmonton_time
                 
-        
         for player, details in self.data.items():
             response = self.process_player_info({player: details})
             embed.add_field(name=player, value=response, inline=False)
@@ -50,13 +51,16 @@ class ForecastView(discord.ui.View):
     def process_player_info(self, player_data):
         player_name = list(player_data.keys())[0]
         goals = player_data[player_name]['goal'][0]
-        # odds = player_data[player_name]['odd'][0]
         Leg_odds = "Example"
         Final_odds = "Example"
+        Shots = "Example"
+        Shots_on_goal = "Example"
         return(
             f"Game: ****\n"
             f"Player's last name: **{player_name}**\n"
             f"Goal: **{goals}**\n" 
+            f"Shots: **{Shots}**\n"
+            f"Shots on goal: **{Shots_on_goal}**\n"
             f"Leg Odds: **{Leg_odds}**\n"
             f"Final odds: **{Final_odds}**\n"  
             f"EV: **{get_EV()}**\n"  
@@ -64,27 +68,27 @@ class ForecastView(discord.ui.View):
             f"MJ: **{get_MJ()}**\n"  
             f"Website name: **{get_website_name()}**\n")
 
-    @discord.ui.button(label="EPL", style=discord.ButtonStyle.secondary, custom_id="get_forecast1")
+    @discord.ui.button(label="🇬🇧", style=discord.ButtonStyle.secondary, custom_id="get_forecast1")
     async def forecast_button1(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.send_forecast(interaction, "EPL")
 
-    @discord.ui.button(label="Bundesliga", style=discord.ButtonStyle.secondary, custom_id="get_forecast2")
+    @discord.ui.button(label="🇩🇪", style=discord.ButtonStyle.secondary, custom_id="get_forecast2")
     async def forecast_button2(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.send_forecast(interaction, "Bundesliga")
 
-    @discord.ui.button(label="Italian Serie A", style=discord.ButtonStyle.secondary, custom_id="get_forecast3")
+    @discord.ui.button(label="🇮🇹", style=discord.ButtonStyle.secondary, custom_id="get_forecast3")
     async def forecast_button3(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.send_forecast(interaction, "Italian Serie A")
 
-    @discord.ui.button(label="La Liga", style=discord.ButtonStyle.secondary, custom_id="get_forecast4")
+    @discord.ui.button(label="🇪🇸", style=discord.ButtonStyle.secondary, custom_id="get_forecast4")
     async def forecast_button4(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.send_forecast(interaction, "La Liga")
 
-    @discord.ui.button(label="French Ligue 1", style=discord.ButtonStyle.secondary, custom_id="get_forecast5")
+    @discord.ui.button(label="🇫🇷", style=discord.ButtonStyle.secondary, custom_id="get_forecast5")
     async def forecast_button5(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.send_forecast(interaction, "French Ligue 1")
 
-    @discord.ui.button(label="Eredivisie", style=discord.ButtonStyle.secondary, custom_id="get_forecast6")
+    @discord.ui.button(label="🇳🇱", style=discord.ButtonStyle.secondary, custom_id="get_forecast6")
     async def forecast_button6(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.send_forecast(interaction, "Eredivisie")
 
@@ -179,22 +183,4 @@ async def on_message(message):
             view = ForecastView(data)
             await message.channel.send("Click the button to get the forecast:", view=view)
 
-
 client.run('MTIyNTk0NzUyODMzMjMxNjczMw.GRlHUM.ibPr8T3y7B6FsplK1BfySDAtWOlPhDkkhInGUc')
-
-"""add hidden dev list"""
-"""add a command to return logs (dev list or our server)""" 
-# Add info to the message: shots or shots on goal
-# Change leagues names to their country flags, change corresponding league cards to leagues(countries) 
-# P(statistic value) value dynamic, when !forecast is run prompt user to set p value 
-# Add logs cleaning method for once a week ~ Optional 
-# When there is the error, send direct message to devs with the error code and timestamp
-# When there is a type 2 error back-up logs for 24 hours
-# When there is a type 3 error back-up logs for 48 hours 
-# When there is a type 4 error back-up logs for 72 hours
-# implement links to the game 
-# remove players name from the top of the message
-"""fix the time stamp""" 
-
-
-
