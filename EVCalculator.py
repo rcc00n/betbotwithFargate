@@ -69,13 +69,15 @@ def calculation_per_website(over_dict: dict, under_dict: dict, final_dict: dict)
         under_list = player_name_under_dict.get('odd')
         player_name_final_dict = final_dict.get(player_name_list[i])
         final_list = player_name_final_dict.get('odd')
+        fair_value_list = []
+        market_juice_list = []
+        EV_percentage_list = []
+        goal = []
+        goal_legOdds_finalOdds_FV_EV_MJ_dict = {}
         for over_odds, under_odds, final_odds in zip(over_list, under_list, final_list):  # obtain the
             over = int(over_odds)
             under = int(under_odds)
             final = int(final_odds)
-            fair_value_list = []
-            market_juice_list = []
-            EV_percentage_list = []
             if over == 0 or under == 0 or final is None:  # Checking if the denominator or numerator is zero
                 continue  # Skipping the iteration if either is zero
             print('player name: ' + str(player_name_list[i]))
@@ -90,6 +92,22 @@ def calculation_per_website(over_dict: dict, under_dict: dict, final_dict: dict)
             print("Fair value: " + str(round(fair_value * 100, 1)) + '%')
             print('EV_percentage: ' + str(round(EV_percentage * 100, 1)) + '%')
             print('================================')
+        temp_dict = {}
+        for k in range(len(fair_value_list)):
+            temp_dict[fair_value_list[k]] = k
+        dict(sorted(temp_dict.items()))  # here we will sort the temp_dict in ascending orders
+        greatest_fair_value_in_fair_value_list_index = temp_dict[list(temp_dict.keys())[-1]]
+        if greatest_fair_value_in_fair_value_list_index > 0.5:
+            goal_legOdds_finalOdds_FV_EV_MJ_dict['goal'] = over_dict['goal']
+            goal_legOdds_finalOdds_FV_EV_MJ_dict['Leg Odds'] = str(over_list[greatest_fair_value_in_fair_value_list_index]) + str(under_list[greatest_fair_value_in_fair_value_list_index])
+            goal_legOdds_finalOdds_FV_EV_MJ_dict['Final Odds'] = str(final_list[greatest_fair_value_in_fair_value_list_index])
+            goal_legOdds_finalOdds_FV_EV_MJ_dict['Fair value'] = fair_value_list[greatest_fair_value_in_fair_value_list_index]
+            goal_legOdds_finalOdds_FV_EV_MJ_dict['EV percentage'] = EV_percentage_list[greatest_fair_value_in_fair_value_list_index]
+            goal_legOdds_finalOdds_FV_EV_MJ_dict['Market juice'] = market_juice_list[greatest_fair_value_in_fair_value_list_index]
+            return_value[player_name_list[i]] = goal_legOdds_finalOdds_FV_EV_MJ_dict
+    return return_value
+
+
 
 
 
