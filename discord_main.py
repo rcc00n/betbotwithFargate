@@ -25,9 +25,10 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 class ForecastView(discord.ui.View):
-    def __init__(self, data):
+    def __init__(self, data, p_value):
         super().__init__()
         self.data = data
+        self.p_value = p_value
 
     async def send_forecast(self, interaction, league_id):
         utc_now = datetime.datetime.utcnow()
@@ -171,16 +172,24 @@ async def on_message(message):
             await message.channel.send("Failed to send log file.")
             logger.error(f"Failed to send log file to {message.author} (ID: {message.author.id}): {e}")
             
-    if message.channel.type == discord.ChannelType.private:
-        if message.content.strip().lower() == "!forecast":
-            data = get_player_data()
-            view = ForecastView(data)
-            await message.channel.send("Click the button to get the forecast:", view=view)
-
-    elif message.channel.type == discord.ChannelType.text:
-        if message.content.strip().lower() == "!forecast":
-            data = get_player_data()
-            view = ForecastView(data)
-            await message.channel.send("Click the button to get the forecast:", view=view)
+    
+            
+    if message.channel.type == discord.ChannelType.private or message.channel.type == discord.ChannelType.text:
+        content = message.content.strip().lower()
+        if content.startswith("!forecast"):
+            parts = content.split()
+            if len(parts) == 2 and parts[1].startswith("p="):
+                try:
+                    p_value = float(parts[1][2:])
+                    if 0 <= p_value <= 1:
+                        data = get_player_data() 
+                        view = ForecastView(data, p_value)  # Modify ForecastView to accept p_value
+                        await message.channel.send("Click the button to get the forecast:", view=view)
+                    else:
+                        raise ValueError("P value out of bounds.")
+                except ValueError:
+                    await message.channel.send("Invalid usage. Please use the command like `!forecast p=0.5` where p is between 0 and 1.")
+            else:
+                await message.channel.send("Invalid usage. Please use the command like `!forecast p=0.5` where p is between 0 and 1.")
 
 client.run('MTIyNTk0NzUyODMzMjMxNjczMw.GRlHUM.ibPr8T3y7B6FsplK1BfySDAtWOlPhDkkhInGUc')
