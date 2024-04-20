@@ -7,7 +7,8 @@ intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 global white_list
 white_list = [805132684237340755, 247841957789827073] 
-admin_user_list = [805132684237340755, 247841957789827073] # Vadim's and Kenny's discord ID 
+# Add discord ID's here, Kenny's and Vadim's discord ID's are currently here
+admin_user_list = [805132684237340755, 247841957789827073] 
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s:%(levelname)s:%(name)s: %(message)s',
@@ -44,12 +45,14 @@ class ForecastView(discord.ui.View):
         goals = player_data[player_name]['goal'][0]
         odds = player_data[player_name]['odd'][0]
         return (
-            f"Player name: **{player_name}**\n"
-            f"Goal: **{goals}**\n"  
-            f"Odds: **{odds}**\n"  
-            f"EV: **{get_EV()}**\n"  
-            f"FV: **{get_FV()}**\n"  
-            f"MJ: **{get_MJ()}**\n"  
+            f"Game: **{}**\n"
+            f"Player's last name: **{player_name}**\n"
+            f"Goal: **{goal}**\n" 
+            f"Leg Odds: **{Leg odds}**\n"
+            f"Final odds: **{Final odds}**\n"  
+            f"EV: **{EV%}**\n"  
+            f"FV: **{FV%}**\n"  
+            f"MJ: **{MJ%}**\n"  
             f"Website name: **{get_website_name()}**\n"
         )
 
@@ -77,6 +80,9 @@ class ForecastView(discord.ui.View):
     async def forecast_button6(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.send_forecast(interaction, "Eredivisie")
 
+
+#Vadim, these functions will not have to be written, 
+#I've implemented how the player_data will be returned in dictionary form from Tommy 
 def get_EV():
     return "Example EV"
 
@@ -90,7 +96,8 @@ def get_website_name():
     return "Example Website"
 
 def get_player_data():
-    return {'Townsend': {'goal': [0.5], 'odd': ['133']}}
+    #The below dictionary was changed to how Tommy will be outputing the data and sending it to you Vadim
+    return {'Townsend': {'goal': [0.5], 'Leg odds': ['133'], 'Final odds': [], 'FV%' : [], 'EV%' : [], 'MJ%' : []}}
 
 @client.event
 async def on_ready():
