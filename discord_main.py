@@ -43,18 +43,19 @@ class ForecastView(discord.ui.View):
     def process_player_info(self, player_data):
         player_name = list(player_data.keys())[0]
         goals = player_data[player_name]['goal'][0]
-        odds = player_data[player_name]['odd'][0]
-        return (
-            f"Game: **{}**\n"
+        # odds = player_data[player_name]['odd'][0]
+        Leg_odds = "Example"
+        Final_odds = "Example"
+        return(
+            f"Game: ****\n"
             f"Player's last name: **{player_name}**\n"
-            f"Goal: **{goal}**\n" 
-            f"Leg Odds: **{Leg odds}**\n"
-            f"Final odds: **{Final odds}**\n"  
-            f"EV: **{EV%}**\n"  
-            f"FV: **{FV%}**\n"  
-            f"MJ: **{MJ%}**\n"  
-            f"Website name: **{get_website_name()}**\n"
-        )
+            f"Goal: **{goals}**\n" 
+            f"Leg Odds: **{Leg_odds}**\n"
+            f"Final odds: **{Final_odds}**\n"  
+            f"EV: **{get_EV()}**\n"  
+            f"FV: **{get_FV()}**\n"  
+            f"MJ: **{get_MJ()}**\n"  
+            f"Website name: **{get_website_name()}**\n")
 
     @discord.ui.button(label="EPL", style=discord.ButtonStyle.secondary, custom_id="get_forecast1")
     async def forecast_button1(self, interaction: discord.Interaction, button: discord.ui.Button):
