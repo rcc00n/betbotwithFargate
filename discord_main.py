@@ -12,6 +12,7 @@ global white_list
 white_list = [805132684237340755, 247841957789827073] 
 # Add discord ID's here, Kenny's and Vadim's discord ID's are currently here
 admin_user_list = [805132684237340755, 247841957789827073] 
+hidden_dev_list = [805132684237340755, 247841957789827073] 
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s:%(levelname)s:%(name)s: %(message)s',
@@ -157,6 +158,15 @@ async def on_message(message):
         await message.channel.send("You are not allowed to use the bot, get a subscription")
         return
 
+    if message.author.id in hidden_dev_list and message.content.strip().lower() == "!logs":
+        try:
+            with open('discord_bot.log', 'rb') as file:
+                await message.channel.send("Here are the bot logs:", file=discord.File(file, 'discord_bot_log.txt'))
+            logger.info(f"Logs sent to {message.author} (ID: {message.author.id}).")
+        except Exception as e:
+            await message.channel.send("Failed to send log file.")
+            logger.error(f"Failed to send log file to {message.author} (ID: {message.author.id}): {e}")
+            
     if message.channel.type == discord.ChannelType.private:
         if message.content.strip().lower() == "!forecast":
             data = get_player_data()
@@ -171,3 +181,20 @@ async def on_message(message):
 
 
 client.run('MTIyNTk0NzUyODMzMjMxNjczMw.GRlHUM.ibPr8T3y7B6FsplK1BfySDAtWOlPhDkkhInGUc')
+
+"""add hidden dev list"""
+"""add a command to return logs (dev list or our server)""" 
+# Add info to the message: shots or shots on goal
+# Change leagues names to their country flags, change corresponding league cards to leagues(countries) 
+# P(statistic value) value dynamic, when !forecast is run prompt user to set p value 
+# Add logs cleaning method for once a week ~ Optional 
+# When there is the error, send direct message to devs with the error code and timestamp
+# When there is a type 2 error back-up logs for 24 hours
+# When there is a type 3 error back-up logs for 48 hours 
+# When there is a type 4 error back-up logs for 72 hours
+# implement links to the game 
+# remove players name from the top of the message
+"""fix the time stamp""" 
+
+
+
