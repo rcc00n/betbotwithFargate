@@ -49,15 +49,23 @@ Devigger Bot uses HTTP requests to scrape specified sites for odds data. These a
 - Users can interact with the bot in Discord by sending commands to request data for specific leagues.
 
 ## Example Usage
-# User sends a command in Discord
-!forecast p ="int" - Prompts user with these following leagues to choose from after inputing p value in place of "int". 
-<img width="433" alt="image" src="https://github.com/TommyTheSmartOne/WebScrapper/assets/114956555/cbcfe4de-485a-4e4a-85aa-3671abeaecbe">
-!userlist - Returns a list of discord user ID's that are whitelisted for usage of the bot. 
-<img width="523" alt="image" src="https://github.com/TommyTheSmartOne/WebScrapper/assets/114956555/3e513d44-7188-4f02-bdd7-1c733ebd4fd1">
-!adduser + "discord user ID" - allows user to add other users to be whitelisted on the bot. 
-!removeuser + "discord user ID"  - allows whitelisted admin users to remove other used from being whitelisted to use the bot, 
-!logs - returns all currently backed up logs from the server. 
-<img width="821" alt="image" src="https://github.com/TommyTheSmartOne/WebScrapper/assets/114956555/44c9bad9-4796-4959-a291-7ec8ebc79a30">
+The Devigger Bot provides several commands that users can input via Discord to interact with its features:
+
+### Forecasting Odds
+- `!forecast p="int"`: After replacing `"int"` with a specific priority level, the user will be prompted to choose from the following leagues. The bot then forecasts odds based on the selected league.
+  ![League Selection](https://github.com/TommyTheSmartOne/WebScrapper/assets/114956555/cbcfe4de-485a-4e4a-85aa-3671abeaecbe)
+
+### User Management
+- `!userlist`: Returns a list of Discord user IDs that are whitelisted to use the bot.
+  ![Whitelist Example](https://github.com/TommyTheSmartOne/WebScrapper/assets/114956555/3e513d44-7188-4f02-bdd7-1c733ebd4fd1)
+- `!adduser + "discord user ID"`: Allows users to add other users to the whitelist.
+- `!removeuser + "discord user ID"`: Allows whitelisted admin users to remove others from the whitelist.
+
+### Server Logs
+- `!logs`: Returns all currently backed up logs from the server.
+  ![Logs Example](https://github.com/TommyTheSmartOne/WebScrapper/assets/114956555/44c9bad9-4796-4959-a291-7ec8ebc79a30)
+
+These commands enhance the interactive capabilities of the bot, providing users with access to real-time odds, user management functionalities, and operational logs directly through Discord.
 
 
 
