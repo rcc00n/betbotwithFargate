@@ -1,10 +1,13 @@
 import discord
 import logging
 import datetime
-
+import pytz
 
 intents = discord.Intents.default()
+intents.messages = True  
+intents.message_content = True 
 client = discord.Client(intents=intents)
+
 global white_list
 white_list = [805132684237340755, 247841957789827073] 
 # Add discord ID's here, Kenny's and Vadim's discord ID's are currently here
@@ -24,13 +27,16 @@ class ForecastView(discord.ui.View):
         self.data = data
 
     async def send_forecast(self, interaction, league_id):
+        utc_now = datetime.datetime.utcnow()
+        edmonton_tz = pytz.timezone('America/Edmonton')
+        edmonton_time = utc_now.replace(tzinfo=pytz.utc).astimezone(edmonton_tz)
         embed = discord.Embed(
-        description="Football Match Forecasts",
-        color=0x1F8B4C)  
-        embed.set_thumbnail(url="http://example.com/your_logo.png")  
-        embed.set_author(name="BetBot", icon_url="http://example.com/bot_icon.png")  
+            description="Football Match Forecasts",
+            color=0x1F8B4C)
+        embed.set_thumbnail(url="http://example.com/your_logo.png")
+        embed.set_author(name="BetBot", icon_url="http://example.com/bot_icon.png")
         embed.set_footer(text="Data provided by BetBot", icon_url="http://example.com/footer_icon.png")
-        embed.timestamp = datetime.datetime.utcnow() 
+        embed.timestamp = edmonton_time
                 
         
         for player, details in self.data.items():
@@ -82,8 +88,7 @@ class ForecastView(discord.ui.View):
         await self.send_forecast(interaction, "Eredivisie")
 
 
-#Vadim, these functions will not have to be written, 
-#I've implemented how the player_data will be returned in dictionary form from Tommy 
+# Temporary functions, will be removed for deployment
 def get_EV():
     return "Example EV"
 
@@ -98,6 +103,7 @@ def get_website_name():
 
 def get_player_data():
     #The below dictionary was changed to how Tommy will be outputing the data and sending it to you Vadim
+    # 19/04/2024 edit
     return {'Townsend': {'goal': [0.5], 'Leg odds': ['133'], 'Final odds': [], 'FV%' : [], 'EV%' : [], 'MJ%' : []}}
 
 @client.event
@@ -109,7 +115,7 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
-    
+
     logger.info(f'Message from {message.author} (ID: {message.author.id}): {message.content}')
 
     if message.author.id in admin_user_list:
@@ -118,6 +124,7 @@ async def on_message(message):
             command = content[0]
         except IndexError:
             await message.channel.send("Please provide a valid user ID.")
+            return
         if command == "!adduser" and len(content) == 2:
             try:
                 user_id_to_add = int(content[1])
@@ -125,7 +132,6 @@ async def on_message(message):
                     white_list.append(user_id_to_add)
                     await message.channel.send(f"User with ID {user_id_to_add} added to white list. List of allowed users: {white_list}")
                     logger.info(f"User with ID {user_id_to_add} added to white list by admin {message.author}.")
-                    logger.info(f"List of allowed users: {white_list}")
                 else:
                     await message.channel.send(f"User with ID {user_id_to_add} is already in the white list.")
             except ValueError:
@@ -137,8 +143,7 @@ async def on_message(message):
                 if user_id_to_remove in white_list:
                     white_list.remove(user_id_to_remove)
                     await message.channel.send(f"User with ID {user_id_to_remove} removed from white list. List of allowed users: {white_list}")
-                    logger.info(f"User with ID {user_id_to_remove} removed from white list by admin {message.author}. List of allowed users: {white_list}")
-                    logger.info(f"List of allowed users: {white_list}")
+                    logger.info(f"User with ID {user_id_to_remove} removed from white list by admin {message.author}.")
                 else:
                     await message.channel.send(f"User with ID {user_id_to_remove} is not in the white list.")
             except ValueError:
@@ -146,17 +151,23 @@ async def on_message(message):
             return
         elif command == "!userlist":
             await message.channel.send(f"List of allowed users: {white_list}")
-            
-            logger.info(f"List of allowed users: {white_list}")
-                    
+            return
+
     if message.author.id not in white_list:
         await message.channel.send("You are not allowed to use the bot, get a subscription")
         return
 
-    if message.content.strip().lower() == "!forecast":
-        data = get_player_data()
-        view = ForecastView(data)
-        await message.channel.send("Click the button to get the forecast:", view=view)
+    if message.channel.type == discord.ChannelType.private:
+        if message.content.strip().lower() == "!forecast":
+            data = get_player_data()
+            view = ForecastView(data)
+            await message.channel.send("Click the button to get the forecast:", view=view)
+
+    elif message.channel.type == discord.ChannelType.text:
+        if message.content.strip().lower() == "!forecast":
+            data = get_player_data()
+            view = ForecastView(data)
+            await message.channel.send("Click the button to get the forecast:", view=view)
 
 
 client.run('MTIyNTk0NzUyODMzMjMxNjczMw.GRlHUM.ibPr8T3y7B6FsplK1BfySDAtWOlPhDkkhInGUc')
