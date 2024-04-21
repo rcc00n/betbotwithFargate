@@ -98,7 +98,7 @@ def calculation_per_website(over_dict: dict, under_dict: dict, final_dict: dict)
         dict(sorted(temp_dict.items()))  # here we will sort the temp_dict in ascending orders
         greatest_fair_value_in_fair_value_list_index = temp_dict[list(temp_dict.keys())[-1]]
         if greatest_fair_value_in_fair_value_list_index > 0.5:
-            goal_legOdds_finalOdds_FV_EV_MJ_dict['goal'] = over_dict['goal']
+            goal_legOdds_finalOdds_FV_EV_MJ_dict['goal'] = over_dict[player_name_list[i]]['goal']
             goal_legOdds_finalOdds_FV_EV_MJ_dict['Leg Odds'] = str(over_list[greatest_fair_value_in_fair_value_list_index]) + str(under_list[greatest_fair_value_in_fair_value_list_index])
             goal_legOdds_finalOdds_FV_EV_MJ_dict['Final Odds'] = str(final_list[greatest_fair_value_in_fair_value_list_index])
             goal_legOdds_finalOdds_FV_EV_MJ_dict['Fair value'] = fair_value_list[greatest_fair_value_in_fair_value_list_index]
