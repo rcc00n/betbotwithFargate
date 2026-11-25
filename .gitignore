@@ -1,1 +1,11 @@
 .idea
+# Local credentials and generated state
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.py[cod]
+.idea/
+data.csv
+*.log
