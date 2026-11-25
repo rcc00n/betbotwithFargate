@@ -1,3 +1,4 @@
+from runtime_config import required_env
 import discord
 import logging
 import logging.handlers
@@ -195,4 +196,4 @@ async def on_message(message):
             else:
                 await message.channel.send("Invalid usage. Please use the command like `!forecast p=0.5` where p is between 0 and 1.")
 
-client.run('MTIyNTk0NzUyODMzMjMxNjczMw.GRlHUM.ibPr8T3y7B6FsplK1BfySDAtWOlPhDkkhInGUc')
+client.run(required_env("DISCORD_BOT_TOKEN"))

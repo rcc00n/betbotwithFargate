@@ -1,72 +1,25 @@
-# Devigger Bot
+# Odds-processing and Discord prototype
 
-## Overview
-Devigger Bot is designed to automatically compare odds across six major soccer leagues:
-- English Premier League
-- German Bundesliga
-- Italian Serie A
-- Spanish La Liga
-- French Ligue 1
-- Netherlands/Dutch Eredivisie
+Historical Python experiments for collecting odds, calculating expected-value examples and forwarding results to Discord. The repository contains source and a container recipe; it does not establish that an AWS deployment is currently running or that an observed opportunity can be executed profitably.
 
-The bot extracts double-sided line odds from Kambi and single-sided line final odds from five other websites. It then processes these odds through a devigger calculation, producing outputs for players with acceptable odds.
+## Source map
 
-## Architecture
-### Data Collection
-- **Web Scraping**: The bot performs HTTP requests to scrape betting odds from various websites.
-- **Data Structure**: The scraped data is structured into a nested dictionary format that includes player names, goals, odds, and other relevant data.
+- `main.py`, `game_id_scraper.py`: provider-specific collection experiments.
+- `EVCalculator.py`: arithmetic helpers.
+- `discord_main.py`: Discord integration.
+- `Starter.py`: process orchestration.
+- `conf.py`: request templates; copied browser cookies/session identifiers have been removed.
 
-### Calculation Engine
-- **Processing**: After data collection, another backend component processes this data to compute Expected Value (EV%), Fair Value (FV%), and Market Juice (MJ%).
-- **Multithreading**: The bot utilizes multithreading to enhance the efficiency of data processing, allowing simultaneous scraping and calculations.
+## Configuration and verification
 
-### Discord Integration
-- **Asynchronous Communication**: Users interact with the bot asynchronously through a Discord interface, selecting their preferred league to receive betting information.
-- **Server**: The bot is hosted on an AWS web server, utilizing its security and performance features to ensure reliable operation.
+Use Python 3.12 with `pip install -r requirements.txt`. Supply your own `DISCORD_BOT_TOKEN`. Optional browser/session configuration is JSON supplied via the names in `.env.example`, never copied into source. Values must be objects; malformed values fail without echoing their content. Current provider contracts/terms and account permissions must be reviewed before running the collector. No provider access is needed for:
 
-## Odds Source
-- **Primary Source for Leg Odds**: [Kambi](https://c3-static.kambi.com/client/pivusinrl-law/index-retail-barcode.html#event/1019734505)
-- **Additional Sources for Final Odds**:
-  - [Betway](https://betway.com/en/sports)
-  - [Fanduel Canada](https://canada.sportsbook.fanduel.com/en/sports)
-  - [Pointsbet](https://on.pointsbet.ca/sports/soccer/)
-  - [Betonline Props](https://sports.betonline.ag/sportsbook/props)
+```sh
+python -m unittest discover -s tests -v
+```
 
-## Output Format
-The bot outputs data in the following format for players that meet the odds criteria:
-![Devigger Bot Output](https://github.com/TommyTheSmartOne/WebScrapper/assets/114956555/78cf9f99-0a5b-4ecd-a9a9-8403abf4ab10)
+The container can be built with `docker build -f docker_test.dockerfile .`; running it is intentionally not part of offline CI because collection and messaging have external side effects. The checks validate safe configuration and absence of credential literals, not trading performance or live API compatibility.
 
-## Functionality
-Devigger Bot uses HTTP requests to scrape specified sites for odds data. These are then used in devigger calculations derived from multiple other websites, efficiently handled via multithreading.
+## Attribution and status
 
-## Technologies Used
-- HTTP requests for data scraping.
-- Python for backend processing, including multithreading in order to speed up webscraping process. 
-- Discord bot for user interface.
-
-## Setup and Deployment
-- The bot is deployed on an AWS server, leveraging AWS's security and scalability features.
-- Users can interact with the bot in Discord by sending commands to request data for specific leagues.
-
-## Example Usage
-The Devigger Bot provides several commands that users can input via Discord to interact with its features:
-
-### Forecasting Odds
-- `!forecast p="int"`: After replacing `"int"` with a specific priority level, the user will be prompted to choose from the following leagues. The bot then forecasts odds based on the selected league.
-  ![League Selection](https://github.com/TommyTheSmartOne/WebScrapper/assets/114956555/cbcfe4de-485a-4e4a-85aa-3671abeaecbe)
-
-### User Management
-- `!userlist`: Returns a list of Discord user IDs that are whitelisted to use the bot.
-  ![Whitelist Example](https://github.com/TommyTheSmartOne/WebScrapper/assets/114956555/3e513d44-7188-4f02-bdd7-1c733ebd4fd1)
-- `!adduser + "discord user ID"`: Allows users to add other users to the whitelist.
-- `!removeuser + "discord user ID"`: Allows whitelisted admin users to remove others from the whitelist.
-
-### Server Logs
-- `!logs`: Returns all currently backed up logs from the server.
-  ![Logs Example](https://github.com/TommyTheSmartOne/WebScrapper/assets/114956555/44c9bad9-4796-4959-a291-7ec8ebc79a30)
-
-These commands enhance the interactive capabilities of the bot, providing users with access to real-time odds, user management functionalities, and operational logs directly through Discord.
-
-
-
-
+Retain the original Git author history and any upstream attribution when reusing the work. Historical README screenshots pointed to external contributor material; they are not claimed as this repository's verified live deployment evidence. See [SECURITY.md](SECURITY.md) before reusing historical credentials or cookies.
